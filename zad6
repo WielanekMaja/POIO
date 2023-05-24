@@ -1,0 +1,102 @@
+#include <iostream>
+#include <math.h>
+using namespace std;
+class Packet{
+protected:
+string device;
+string description;
+long date;
+public:
+Packet(string Device, string Description, long Date) : device(Device) , description(Description) , date(Date) {};
+virtual void abstrakcja()=0;
+virtual void toString(void){
+cout<<"Device:"<<device<<endl;
+cout<<"Description:"<<description<<endl;
+cout<<"Date:"<<date<<endl;
+};
+virtual ~Packet() {};
+};
+template <class T, int I>
+class Sequence : public Packet{
+protected:
+int channelNr;
+string unit;
+double resolution;
+T *buffer= new T[I];
+public:
+Sequence<T,I>(string Device, string Description, long Date, int ChannelNr, string Unit, double Resolution, T*
+Buffer):Packet(Device, Description, Date), channelNr(ChannelNr), unit(Unit), resolution(Resolution), buffer(Buffer) {
+};
+virtual void toString(void){
+Packet::toString();
+cout<<"ChannelNr:"<<channelNr<<endl;
+cout<<"Unit:"<<unit<<endl;
+cout<<"Resolution:"<<resolution<<endl;
+cout<<"Buffer"<<endl;
+for(int i=0; i<I; i++)
+cout<<buffer[i]<<"\t";
+cout<<endl;
+};
+virtual ~Sequence<T,I>() {};
+};
+template <class T, int I>
+class Spectrum: public Sequence<T,I> {
+private:
+string scaling;
+public:
+Spectrum<T,I>(string Device, string Description, long Date, int ChannelNr, string Unit, double Resolution, T Buffer[I],
+string Scaling):Sequence<T,I>(Device, Description, Date, ChannelNr, Unit, Resolution, Buffer), scaling(Scaling){
+};
+virtual void abstrakcja() override{};
+void toString(void){
+Sequence<T,I>::toString();
+cout<<"Scaling:"<<scaling<<endl;
+cout<<endl;
+}
+virtual ~Spectrum<T,I>() {};
+};
+template <class T, int I>
+class TimeHistory: public Sequence<T,I> {
+private:
+double sensitivity;
+public:
+TimeHistory<T,I>(string Device, string Description, long Date, int ChannelNr, string Unit, double Resolution, T Buffer[I],
+double Sensitivity):Sequence<T,I>(Device, Description, Date, ChannelNr, Unit, Resolution, Buffer), sensitivity(Sensitivity){
+};
+virtual void abstrakcja() override{};
+void toString(void){
+Sequence<T,I>::toString();
+cout<<"Sensitivity:"<<sensitivity<<endl;
+cout<<endl;
+}
+virtual ~TimeHistory<T,I>() {};
+};
+class Alarm : public Packet{
+private:
+int channelNr;
+double threshold;
+int direction;
+public:
+Alarm(string Device, string Description, long Date, int ChannelNr, double Threshold, int Direction): Packet(Device,
+Description, Date), channelNr(ChannelNr),threshold(Threshold),direction(Direction){
+};
+virtual void abstrakcja() override{};
+void toString(void){
+Packet::toString();
+cout<<"ChannelNr:"<<channelNr<<endl;
+cout<<"Threshold:"<<threshold<<endl;
+cout<<"Direction:"<<direction<<endl;
+cout<<endl;
+}
+};
+int main() {
+Alarm s("PLC1","Alarm s",100,3,0.5,1);
+s.toString();
+int Buffer2[5]={1,2,3,4,5};
+TimeHistory<int, 5> x("PLC2","TimeHistory x",200,5,"s",1660,Buffer2,50);
+x.toString();
+int Buffer1[7]={1,2,3,4,5,6,7};
+Spectrum<int, 7> y("PLC3","Spectrum y",300,1,"ms",1980,Buffer1,"linear");
+y.toString();
+return 0;
+}
